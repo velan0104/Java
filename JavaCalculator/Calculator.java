@@ -1,21 +1,29 @@
 package JavaCalculator;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
+import java.util.HashSet;
+import java.util.regex.Pattern;
+
+public class Calculator implements ActionListener,KeyListener {
 
 
-public class Calculator extends Solve implements ActionListener {
-
+    Color color = Color.WHITE;
+    Color operators = Color.BLUE;
+    Color fColor = Color.decode("#383737");
+    HashSet<String> operator = new HashSet<>();
+    HistoryFunctionality history = new HistoryFunctionality();
     Frame frame = new Frame();
     TextField text = new TextField();
-    public Button createButton(String name,Color color){
+    public Button createButton(String name,Color colors){
         Button newBtn = new Button(name);
         Dimension btnSize = new Dimension(50,50);
         newBtn.setPreferredSize(btnSize);
-        newBtn.setBackground(color);
-        newBtn.setForeground(Color.white);
+        newBtn.setBackground(colors);
+        if(colors.equals(color)) {
+            newBtn.setForeground(Color.blue);
+        }else{
+            newBtn.setForeground(Color.WHITE);
+        }
         newBtn.addActionListener(this);
         return newBtn;
     }
@@ -28,9 +36,9 @@ public class Calculator extends Solve implements ActionListener {
 
         return temp;
     }
+
     public Calculator(){
-        Color color = Color.decode("#292828");
-        Color operators = Color.decode("#f28824");
+        frame.setBackground(fColor);
         frame.setTitle("Calculator");
         frame.setSize(1200,700);
         frame.setVisible(true);
@@ -38,6 +46,7 @@ public class Calculator extends Solve implements ActionListener {
         Dimension dimension = new Dimension(250,40);
         text.setPreferredSize(dimension);
         text.setEditable(false);
+        text.addKeyListener( this);
 
         Button btn1 = createButton("1",color);
         Button btn2 = createButton("2",color);
@@ -60,9 +69,16 @@ public class Calculator extends Solve implements ActionListener {
         Button dot = createButton(".",color);
         Button mod = createButton("%",operators);
 
+//        History
+        Button history = new Button("History");
+        history.setPreferredSize(new Dimension(100,50));
+        history.setBackground(Color.BLUE);
+        history.setForeground(Color.WHITE);
+        history.addActionListener(this);
+
         Panel panel = new Panel(new GridBagLayout());
         panel.setSize(300,500);
-        panel.setBackground(Color.WHITE);
+        panel.setBackground(fColor);
 
         Insets insets = new Insets(5,5,5,5);
 
@@ -93,6 +109,12 @@ public class Calculator extends Solve implements ActionListener {
         GridBagConstraints gbDot= place(2,5,insets);
         GridBagConstraints gbAns= place(3,5,insets);
 
+        GridBagConstraints gbHistory = new GridBagConstraints();
+        gbHistory.gridx = 1;
+        gbHistory.gridy = 6;
+        gbHistory.gridwidth = 2;
+        gbHistory.insets = insets;
+
 
         panel.add(text,gbText);
         panel.add(btn1,gb1);
@@ -115,6 +137,7 @@ public class Calculator extends Solve implements ActionListener {
         panel.add(ans,gbAns);
         panel.add(dot,gbDot);
         panel.add(div,gbDiv);
+        panel.add(history,gbHistory);
 
         frame.add(panel);
         frame.addWindowListener(new WindowAdapter() {
@@ -124,25 +147,63 @@ public class Calculator extends Solve implements ActionListener {
             }
         });
 
+        operator.add("+");
+        operator.add("-");
+        operator.add("*");
+        operator.add("/");
+    }
+
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    public void keyPressed(KeyEvent e){
+        char key = e.getKeyChar();
+        int keyCode = e.getKeyCode();
+
+        if(Character.isDigit(key) || key == '+' || key == '-' || key == '*' || key == '/'){
+            text.setText(text.getText() + key);
+        }else if(text.getText() != "" && keyCode == KeyEvent.VK_BACK_SPACE){
+            String eq = text.getText();
+            text.setText(eq.substring(0,eq.length() - 1));
+        }
+
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         String value = ((Button)e.getSource()).getLabel();
-        if(value == "="){
+        if(value.equals("History")){
+            HistoryFrame hist = new HistoryFrame();
+        }
+        else if(value.equals("=")){
+            String expression = text.getText();
             Solve solve = new Solve();
-            String result = solve.eval(text.getText());
+            String result = solve.eval(expression);
+            history.storeHistory(value + " " + result);
+            history.storeHistory(expression);
             text.setText(result);
-            if(result == "ERR"){
+            if(result.equals("ERR")){
                 text.setForeground(Color.RED);
             }
-        }else if(!value.isEmpty() && value == "AC"){
+        }else if(value.equals("AC")){
             text.setText("");
-        }else if(!value.isEmpty() && value == "C"){
+        }else if(value.equals("C")){
             String eq = text.getText();
             text.setText(eq.substring(0,eq.length() - 1));
         }else {
-            text.setText(text.getText() + value);
+            if(operator.contains(value)){
+                text.setText(text.getText() + " " + value + " ");
+            }else{
+                text.setText(text.getText() + value);
+            }
+
         }
 
     }

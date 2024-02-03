@@ -27,18 +27,19 @@ public class Solve {
         return 0;
     }
 
-    private int operation(int a, int b, char op){
+    private double operation(double a, double b, char op){
         switch(op){
             case '+': return a + b;
-            case '-': return a -b;
+            case '-': return a - b;
             case '*': return a * b;
             case '/': return a / b;
+
         }
         return 0;
     }
     public String eval(String expression){
         if(!isValid(expression)) return "ERR";
-        Stack<Integer> operand = new Stack<>();
+        Stack<Double> operand = new Stack<>();
         Stack<Character> operator = new Stack<>();
 
         char[] expr = expression.toCharArray();
@@ -46,14 +47,15 @@ public class Solve {
         for(int i = 0; i < expr.length; i++){
             if(expr[i] == ' ') continue;
 
-            else if(expr[i] >= '0' && expr[i] <= '9' ){
+            else if((expr[i] >= '0' && expr[i] <= '9') || expr[i] == '.' ){
                 StringBuilder str = new StringBuilder();
-                while(i != expr.length && expr[i] >= '0' && expr[i] <= '9'){
+                while(i != expr.length && ((expr[i] >= '0' && expr[i] <= '9') || expr[i] == '.')){
                     str.append(expr[i]);
                     i++;
                 }
                 i--;
-                int opr = Integer.parseInt(str.toString());
+                double opr = Double.parseDouble(str.toString());
+
                 operand.push(opr);
             }
 
@@ -63,9 +65,9 @@ public class Solve {
 
             else if(expr[i] == ')'){
                 while(!operator.isEmpty() && operator.peek() != '('){
-                    int op2 = operand.pop();
-                    int op1 = operand.pop();
-                    int result =  operation(op1,op2,operator.pop());
+                    double op2 = operand.pop();
+                    double op1 = operand.pop();
+                    double result =  operation(op1,op2,operator.pop());
                     operand.push(result);
                 }
                 operator.pop();
@@ -73,10 +75,10 @@ public class Solve {
 
             else{
                 while(!operator.isEmpty() && precedence(operator.peek()) > precedence(expr[i])){
-                    int op2 = operand.pop();
-                    int op1 = operand.pop();
+                    double op2 = operand.pop();
+                    double op1 = operand.pop();
 
-                    int result = operation(op1,op2,operator.pop());
+                    double result = operation(op1,op2,operator.pop());
                     operand.push(result);
                 }
                 operator.push(expr[i]);
@@ -84,10 +86,10 @@ public class Solve {
         }
 
         while(!operator.empty()){
-            int op2 = operand.pop();
-            int op1 = operand.pop();
+            double op2 = operand.pop();
+            double op1 = operand.pop();
 
-            int result = operation(op1,op2,operator.pop());
+            double result = operation(op1,op2,operator.pop());
             operand.push(result);
         }
 
